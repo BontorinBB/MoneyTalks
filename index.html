@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor de Moedas Avançado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --border-radius: 10px;
+            --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .converter-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .converter-container:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .converter-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            color: var(--dark-color);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input, select {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
+        }
+
+        input {
+            font-weight: 600;
+        }
+
+        select {
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .swap-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 18px;
+        }
+
+        .swap-btn:hover {
+            background-color: var(--secondary-color);
+            transform: rotate(180deg);
+        }
+
+        .result-container {
+            margin-top: 25px;
+            background-color: var(--light-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            display: none;
+        }
+
+        .result-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .rate-info {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            color: #e63946;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .history-container {
+            margin-top: 25px;
+            display: none;
+        }
+
+        .history-title {
+            font-size: 16px;
+            color: var(--dark-color);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .history-list {
+            list-style: none;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        @media (max-width: 480px) {
+            .converter-container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="converter-container">
+        <h1>Conversor de Moedas</h1>
+        
+        <div class="converter-form">
+            <div class="input-group">
+                <label for="amount">Valor</label>
+                <input type="number" id="amount" placeholder="Digite o valor" min="0" step="0.01">
+            </div>
+            
+            <div class="input-group">
+                <label for="from">De</label>
+                <select id="from">
+                    <option value="BRL">Real Brasileiro (BRL)</option>
+                    <option value="USD">Dólar Americano (USD)</option>
+                    <option value="EUR">Euro (EUR)</option>
+                    <option value="GBP">Libra Esterlina (GBP)</option>
+                    <option value="JPY">Iene Japonês (JPY)</option>
+                    <option value="ARS">Peso Argentino (ARS)</option>
+                </select>
+            </div>
+            
+            <button class="swap-btn" id="swap" aria-label="Inverter moedas">
+                <i>⇅</i>
+            </button>
+            
+            <div class="input-group">
+                <label for="to">Para</label>
+                <select id="to">
+                    <option value="USD">Dólar Americano (USD)</option>
+                    <option value="BRL">Real Brasileiro (BRL)</option>
+                    <option value="EUR">Euro (EUR)</option>
+                    <option value="GBP">Libra Esterlina (GBP)</option>
+                    <option value="JPY">Iene Japonês (JPY)</option>
+                </select>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Obtendo cotações...</p>
+            </div>
+            
+            <button class="btn" id="convert">Converter</button>
+            
+            <div class="error-message" id="error"></div>
+        </div>
+        
+        <div class="result-container" id="result">
+            <p>Resultado da conversão</p>
+            <div class="result-value" id="result-value">0.00</div>
+            <p class="rate-info" id="rate-info">Taxa de câmbio: 1 USD = 5.20 BRL</p>
+        </div>
+        
+        <div class="history-container" id="history">
+            <p class="history-title">Histórico de conversões</p>
+            <ul class="history-list" id="history-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos do DOM
+            const amountInput = document.getElementById('amount');
+            const fromSelect = document.getElementById('from');
+            const toSelect = document.getElementById('to');
+            const swapBtn = document.getElementById('swap');
+            const convertBtn = document.getElementById('convert');
+            const resultContainer = document.getElementById('result');
+            const resultValue = document.getElementById('result-value');
+            const rateInfo = document.getElementById('rate-info');
+            const errorMessage = document.getElementById('error');
+            const loading = document.getElementById('loading');
+            const historyContainer = document.getElementById('history');
+            const historyList = document.getElementById('history-list');
+            
+            // API Key - Em produção, use um backend para esconder isso
+            const API_KEY = 'fca_live_9GtQ5X3Q4hY1z3vZ7WJ4J9QZ3Q4hY1z3vZ7WJ4J9QZ';
+            const API_URL = `https://api.freecurrencyapi.com/v1/latest?apikey=${API_KEY}`;
+            
+            // Histórico de conversões
+            let conversionHistory = JSON.parse(localStorage.getItem('conversionHistory')) || [];
+            
+            // Carregar histórico
+            function loadHistory() {
+                historyList.innerHTML = '';
+                if (conversionHistory.length > 0) {
+                    historyContainer.style.display = 'block';
+                    conversionHistory.slice(0, 5).forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'history-item';
+                        li.innerHTML = `
+                            <span>${item.amount} ${item.from}</span>
+                            <span>→ ${item.result} ${item.to}</span>
+                        `;
+                        historyList.appendChild(li);
+                    });
+                }
+            }
+            
+            // Converter moedas
+            async function convertCurrency() {
+                const amount = parseFloat(amountInput.value);
+                const from = fromSelect.value;
+                const to = toSelect.value;
+                
+                // Validação
+                if (isNaN(amount) {
+                    showError('Por favor, insira um valor válido');
+                    return;
+                }
+                
+                if (amount <= 0) {
+                    showError('O valor deve ser maior que zero');
+                    return;
+                }
+                
+                if (from === to) {
+                    showError('Selecione moedas diferentes');
+                    return;
+                }
+                
+                // Limpar erros e mostrar loading
+                clearError();
+                loading.style.display = 'block';
+                resultContainer.style.display = 'none';
+                
+                try {
+                    // Buscar taxa de câmbio
+                    const response = await fetch(`${API_URL}&base_currency=${from}`);
+                    const data = await response.json();
+                    
+                    if (!response.ok || !data.data) {
+                        throw new Error(data.message || 'Erro ao obter cotações');
+                    }
+                    
+                    const rate = data.data[to];
+                    const result = (amount * rate).toFixed(2);
+                    
+                    // Mostrar resultado
+                    resultValue.textContent = result;
+                    rateInfo.textContent = `Taxa de câmbio: 1 ${from} = ${rate.toFixed(6)} ${to}`;
+                    resultContainer.style.display = 'block';
+                    
+                    // Adicionar ao histórico
+                    const conversion = {
+                        amount: amount.toFixed(2),
+                        from,
+                        to,
+                        result,
+                        rate,
+                        date: new Date().toLocaleString()
+                    };
+                    
+                    conversionHistory.unshift(conversion);
+                    if (conversionHistory.length > 5) {
+                        conversionHistory = conversionHistory.slice(0, 5);
+                    }
+                    
+                    localStorage.setItem('conversionHistory', JSON.stringify(conversionHistory));
+                    loadHistory();
+                    
+                } catch (error) {
+                    console.error('Erro na conversão:', error);
+                    showError('Erro ao converter. Tente novamente mais tarde.');
+                } finally {
+                    loading.style.display = 'none';
+                }
+            }
+            
+            // Inverter moedas
+            function swapCurrencies() {
+                const temp = fromSelect.value;
+                fromSelect.value = toSelect.value;
+                toSelect.value = temp;
+            }
+            
+            // Mostrar erro
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                resultContainer.style.display = 'none';
+            }
+            
+            // Limpar erro
+            function clearError() {
+                errorMessage.style.display = 'none';
+            }
+            
+            // Event Listeners
+            convertBtn.addEventListener('click', convertCurrency);
+            swapBtn.addEventListener('click', swapCurrencies);
+            
+            // Permitir conversão com Enter
+            amountInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    convertCurrency();
+                }
+            });
+            
+            // Carregar histórico ao iniciar
+            loadHistory();
+        });
+    </script>
+</body>
+</html>
