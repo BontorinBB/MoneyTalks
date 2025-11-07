@@ -233,6 +233,17 @@
             margin-top: 15px;
         }
 
+        .demo-notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: var(--border-radius);
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #856404;
+            text-align: center;
+        }
+
         @media (max-width: 480px) {
             .converter-container {
                 padding: 20px;
@@ -248,10 +259,14 @@
     <div class="converter-container">
         <h1>Conversor de Moedas</h1>
         
+        <div class="demo-notice">
+            ⚠️ Modo demonstração - usando taxas fixas para teste
+        </div>
+        
         <div class="converter-form">
             <div class="input-group">
                 <label for="amount">Valor</label>
-                <input type="number" id="amount" placeholder="Digite o valor" min="0" step="0.01">
+                <input type="number" id="amount" placeholder="Digite o valor" min="0" step="0.01" value="100">
             </div>
             
             <div class="input-group">
@@ -333,9 +348,56 @@
             const clearHistoryBtn = document.getElementById('clear-history');
             const lastUpdate = document.getElementById('last-update');
             
-            // API Key - Em produção, use um backend para esconder isso
-            const API_KEY = 'fca_live_9GtQ5X3Q4hY1z3vZ7WJ4J9QZ3Q4hY1z3vZ7WJ4J9QZ';
-            const API_URL = `https://api.freecurrencyapi.com/v1/latest?apikey=${API_KEY}`;
+            // Taxas de câmbio fixas para demonstração (valores aproximados)
+            const exchangeRates = {
+                'USD': { 
+                    'BRL': 5.20, 'EUR': 0.92, 'GBP': 0.79, 'JPY': 148.50, 
+                    'ARS': 365.50, 'CAD': 1.35, 'AUD': 1.52, 'CHF': 0.88, 'CNY': 7.18, 'USD': 1 
+                },
+                'BRL': { 
+                    'USD': 0.19, 'EUR': 0.18, 'GBP': 0.15, 'JPY': 28.56, 
+                    'ARS': 70.29, 'CAD': 0.26, 'AUD': 0.29, 'CHF': 0.17, 'CNY': 1.38, 'BRL': 1 
+                },
+                'EUR': { 
+                    'USD': 1.09, 'BRL': 5.67, 'GBP': 0.86, 'JPY': 161.41, 
+                    'ARS': 397.28, 'CAD': 1.47, 'AUD': 1.65, 'CHF': 0.96, 'CNY': 7.80, 'EUR': 1 
+                },
+                'GBP': { 
+                    'USD': 1.27, 'BRL': 6.58, 'EUR': 1.16, 'JPY': 188.61, 
+                    'ARS': 464.56, 'CAD': 1.71, 'AUD': 1.92, 'CHF': 1.11, 'CNY': 9.09, 'GBP': 1 
+                },
+                'JPY': { 
+                    'USD': 0.0067, 'BRL': 0.035, 'EUR': 0.0062, 'GBP': 0.0053, 
+                    'ARS': 2.46, 'CAD': 0.0091, 'AUD': 0.0102, 'CHF': 0.0059, 'CNY': 0.048, 'JPY': 1 
+                }
+            };
+
+            // Adicionar taxas para moedas que faltam
+            function completeExchangeRates() {
+                const allCurrencies = ['USD', 'BRL', 'EUR', 'GBP', 'JPY', 'ARS', 'CAD', 'AUD', 'CHF', 'CNY'];
+                
+                allCurrencies.forEach(from => {
+                    if (!exchangeRates[from]) {
+                        exchangeRates[from] = {};
+                    }
+                    
+                    allCurrencies.forEach(to => {
+                        if (from === to) {
+                            exchangeRates[from][to] = 1;
+                        } else if (!exchangeRates[from][to]) {
+                            // Calcular taxa indiretamente via USD
+                            if (exchangeRates[from] && exchangeRates[from]['USD'] && exchangeRates['USD'] && exchangeRates['USD'][to]) {
+                                exchangeRates[from][to] = exchangeRates[from]['USD'] * exchangeRates['USD'][to];
+                            } else {
+                                // Valor padrão se não conseguir calcular
+                                exchangeRates[from][to] = from === 'USD' ? 1 : 0.5;
+                            }
+                        }
+                    });
+                });
+            }
+
+            completeExchangeRates();
             
             // Histórico de conversões
             let conversionHistory = JSON.parse(localStorage.getItem('conversionHistory')) || [];
@@ -372,6 +434,11 @@
                 lastUpdate.textContent = `Última atualização: ${now.toLocaleString('pt-BR')}`;
             }
             
+            // Simular delay de API
+            function delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            
             // Converter moedas
             async function convertCurrency() {
                 const amount = parseFloat(amountInput.value);
@@ -400,15 +467,16 @@
                 resultContainer.style.display = 'none';
                 
                 try {
-                    // Buscar taxa de câmbio
-                    const response = await fetch(`${API_URL}&base_currency=${from}`);
-                    const data = await response.json();
+                    // Simular chamada de API com delay
+                    await delay(800);
                     
-                    if (!response.ok || !data.data) {
-                        throw new Error(data.message || 'Erro ao obter cotações');
+                    // Usar taxas fixas para demonstração
+                    const rate = exchangeRates[from] && exchangeRates[from][to];
+                    
+                    if (!rate) {
+                        throw new Error('Taxa de câmbio não disponível para estas moedas');
                     }
                     
-                    const rate = data.data[to];
                     const result = (amount * rate).toFixed(2);
                     
                     // Mostrar resultado
@@ -473,6 +541,9 @@
                     convertCurrency();
                 }
             });
+
+            // Converter automaticamente ao carregar a página
+            convertCurrency();
             
             // Carregar histórico ao iniciar
             loadHistory();
