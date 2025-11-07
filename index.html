@@ -196,6 +196,18 @@
             color: var(--dark-color);
             margin-bottom: 10px;
             font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-history {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: underline;
         }
 
         .history-list {
@@ -212,6 +224,13 @@
 
         .history-item:last-child {
             border-bottom: none;
+        }
+
+        .last-update {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            margin-top: 15px;
         }
 
         @media (max-width: 480px) {
@@ -244,6 +263,10 @@
                     <option value="GBP">Libra Esterlina (GBP)</option>
                     <option value="JPY">Iene Japonês (JPY)</option>
                     <option value="ARS">Peso Argentino (ARS)</option>
+                    <option value="CAD">Dólar Canadense (CAD)</option>
+                    <option value="AUD">Dólar Australiano (AUD)</option>
+                    <option value="CHF">Franco Suíço (CHF)</option>
+                    <option value="CNY">Yuan Chinês (CNY)</option>
                 </select>
             </div>
             
@@ -259,6 +282,10 @@
                     <option value="EUR">Euro (EUR)</option>
                     <option value="GBP">Libra Esterlina (GBP)</option>
                     <option value="JPY">Iene Japonês (JPY)</option>
+                    <option value="CAD">Dólar Canadense (CAD)</option>
+                    <option value="AUD">Dólar Australiano (AUD)</option>
+                    <option value="CHF">Franco Suíço (CHF)</option>
+                    <option value="CNY">Yuan Chinês (CNY)</option>
                 </select>
             </div>
             
@@ -276,10 +303,14 @@
             <p>Resultado da conversão</p>
             <div class="result-value" id="result-value">0.00</div>
             <p class="rate-info" id="rate-info">Taxa de câmbio: 1 USD = 5.20 BRL</p>
+            <p class="last-update" id="last-update"></p>
         </div>
         
         <div class="history-container" id="history">
-            <p class="history-title">Histórico de conversões</p>
+            <p class="history-title">
+                Histórico de conversões
+                <button class="clear-history" id="clear-history">Limpar</button>
+            </p>
             <ul class="history-list" id="history-list"></ul>
         </div>
     </div>
@@ -299,6 +330,8 @@
             const loading = document.getElementById('loading');
             const historyContainer = document.getElementById('history');
             const historyList = document.getElementById('history-list');
+            const clearHistoryBtn = document.getElementById('clear-history');
+            const lastUpdate = document.getElementById('last-update');
             
             // API Key - Em produção, use um backend para esconder isso
             const API_KEY = 'fca_live_9GtQ5X3Q4hY1z3vZ7WJ4J9QZ3Q4hY1z3vZ7WJ4J9QZ';
@@ -321,7 +354,22 @@
                         `;
                         historyList.appendChild(li);
                     });
+                } else {
+                    historyContainer.style.display = 'none';
                 }
+            }
+            
+            // Limpar histórico
+            function clearHistory() {
+                conversionHistory = [];
+                localStorage.setItem('conversionHistory', JSON.stringify(conversionHistory));
+                loadHistory();
+            }
+            
+            // Atualizar timestamp
+            function updateTimestamp() {
+                const now = new Date();
+                lastUpdate.textContent = `Última atualização: ${now.toLocaleString('pt-BR')}`;
             }
             
             // Converter moedas
@@ -367,6 +415,7 @@
                     resultValue.textContent = result;
                     rateInfo.textContent = `Taxa de câmbio: 1 ${from} = ${rate.toFixed(6)} ${to}`;
                     resultContainer.style.display = 'block';
+                    updateTimestamp();
                     
                     // Adicionar ao histórico
                     const conversion = {
@@ -416,6 +465,7 @@
             // Event Listeners
             convertBtn.addEventListener('click', convertCurrency);
             swapBtn.addEventListener('click', swapCurrencies);
+            clearHistoryBtn.addEventListener('click', clearHistory);
             
             // Permitir conversão com Enter
             amountInput.addEventListener('keypress', function(e) {
